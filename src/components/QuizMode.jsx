@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { QUESTIONS } from '../data/questions.js'
+import { usePlayer } from '../context/PlayerContext.jsx'
 
 const API_BASE = '/sandbox/baseball-coach/api'
 
@@ -8,33 +9,21 @@ function shuffle(arr) {
 }
 
 export default function QuizMode() {
-  const [playerName, setPlayerName] = useState(() => localStorage.getItem('bb_player') || '')
-  const [nameInput, setNameInput] = useState('')
+  const { player } = usePlayer()
   const [questions, setQuestions] = useState([])
   const [current, setCurrent] = useState(0)
   const [selected, setSelected] = useState(null)
   const [score, setScore] = useState(0)
   const [leaderboard, setLeaderboard] = useState([])
-  const [phase, setPhase] = useState('name') // name | playing | done
+  const [phase, setPhase] = useState('playing') // playing | done
 
   useEffect(() => {
-    if (playerName) {
-      setPhase('playing')
-      setQuestions(shuffle(QUESTIONS).slice(0, 8))
-    }
-  }, [])
-
-  const startQuiz = () => {
-    if (!nameInput.trim()) return
-    const name = nameInput.trim()
-    setPlayerName(name)
-    localStorage.setItem('bb_player', name)
     setQuestions(shuffle(QUESTIONS).slice(0, 8))
     setCurrent(0)
     setSelected(null)
     setScore(0)
     setPhase('playing')
-  }
+  }, [])
 
   const handleAnswer = (idx) => {
     if (selected !== null) return
@@ -63,13 +52,18 @@ export default function QuizMode() {
       await fetch(`${API_BASE}/scores.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: playerName, score: finalScore, total: questions.length })
+        body: JSON.stringify({
+          name: player?.first_name || 'Guest',
+          score: finalScore,
+          total: questions.length,
+          player_id: player?.id || null,
+        }),
       })
       const res = await fetch(`${API_BASE}/scores.php`)
       const data = await res.json()
       setLeaderboard(data.scores || [])
     } catch (e) {
-      // API not available in dev — graceful degradation
+      // API not available — graceful degradation
     }
   }
 
@@ -79,31 +73,6 @@ export default function QuizMode() {
     setSelected(null)
     setScore(0)
     setPhase('playing')
-  }
-
-  if (phase === 'name') {
-    return (
-      <div className="p-4 flex flex-col items-center justify-center min-h-64">
-        <div className="text-6xl mb-4">🧠</div>
-        <h2 className="text-2xl font-bold text-yellow-300 mb-2">Baseball Quiz!</h2>
-        <p className="text-emerald-300 text-sm mb-6 text-center">Test what you know about baseball plays and positions!</p>
-        <input
-          type="text"
-          placeholder="What's your name?"
-          value={nameInput}
-          onChange={e => setNameInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && startQuiz()}
-          className="w-full max-w-xs bg-emerald-800 border-2 border-emerald-600 rounded-xl px-4 py-3 text-white text-center text-lg mb-4 focus:outline-none focus:border-yellow-400"
-        />
-        <button
-          onClick={startQuiz}
-          disabled={!nameInput.trim()}
-          className="bg-yellow-400 text-emerald-900 font-bold text-lg px-8 py-3 rounded-2xl hover:bg-yellow-300 active:scale-95 transition-all disabled:opacity-40"
-        >
-          Let's Play! ⚾
-        </button>
-      </div>
-    )
   }
 
   if (phase === 'done') {
@@ -121,7 +90,7 @@ export default function QuizMode() {
           <h2 className="text-xl font-bold text-yellow-300">{message}</h2>
           <div className="mt-4 bg-emerald-800 rounded-2xl p-4 border-2 border-yellow-400 inline-block">
             <p className="text-4xl font-black text-yellow-300">{score}/{questions.length}</p>
-            <p className="text-emerald-300 text-sm">Score for {playerName}</p>
+            <p className="text-emerald-300 text-sm">Score for {player?.first_name || 'you'}</p>
           </div>
         </div>
 
@@ -158,6 +127,13 @@ export default function QuizMode() {
 
   return (
     <div className="p-4">
+      {/* Quiz header */}
+      <div className="text-center mb-3">
+        <h2 className="text-lg font-bold text-yellow-300">
+          🧠 Quiz Time, {player?.first_name || 'slugger'}!
+        </h2>
+      </div>
+
       {/* Progress */}
       <div className="flex items-center gap-2 mb-4">
         <div className="flex-1 bg-emerald-800 rounded-full h-2">

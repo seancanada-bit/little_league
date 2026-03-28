@@ -1,7 +1,9 @@
 const tabs = [
-  { id: 'diamond', label: 'Field', icon: '🟫' },
+  { id: 'diamond', label: 'Field',  icon: '🟫' },
   { id: 'plays',   label: 'Plays',  icon: '🎬' },
   { id: 'quiz',    label: 'Quiz',   icon: '🧠' },
+  { id: 'throw',   label: 'Throw!', icon: '🎯' },
+  { id: 'stats',   label: 'Stats',  icon: '📊' },
 ]
 
 export default function NavBar({ tab, setTab }) {
