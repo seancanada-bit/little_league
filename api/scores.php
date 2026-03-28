@@ -1,0 +1,60 @@
+<?php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+$host   = getenv('DB_HOST') ?: 'localhost';
+$dbname = getenv('DB_NAME') ?: 'baseball_coach';
+$user   = getenv('DB_USER') ?: 'root';
+$pass   = getenv('DB_PASS') ?: '';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass, [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database connection failed']);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data  = json_decode(file_get_contents('php://input'), true);
+    $name  = htmlspecialchars(trim($data['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+    $score = (int)($data['score'] ?? 0);
+    $total = (int)($data['total'] ?? 0);
+
+    if (!$name || $total <= 0) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid data']);
+        exit;
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO quiz_scores (player_name, score, total, played_at)
+         VALUES (:name, :score, :total, NOW())'
+    );
+    $stmt->execute([':name' => $name, ':score' => $score, ':total' => $total]);
+    echo json_encode(['success' => true, 'id' => $pdo->lastInsertId()]);
+
+} else {
+    // GET — return leaderboard (best score per player)
+    $stmt = $pdo->query(
+        'SELECT player_name AS name,
+                MAX(score) AS score,
+                total,
+                COUNT(*) AS games_played
+         FROM quiz_scores
+         GROUP BY player_name, total
+         ORDER BY score DESC, played_at DESC
+         LIMIT 20'
+    );
+    echo json_encode(['scores' => $stmt->fetchAll()]);
+}
