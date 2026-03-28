@@ -57,8 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO quiz_scores (player_name, score, total, player_id, played_at)
-         VALUES (:name, :score, :total, :player_id, NOW())'
+        'INSERT INTO quiz_scores (player_name, score, total_questions, player_id)
+         VALUES (:name, :score, :total, :player_id)'
     );
     $stmt->execute([
         ':name'      => $name,
@@ -77,11 +77,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare(
             'SELECT player_name AS name,
                     score,
-                    total,
-                    played_at
+                    total_questions AS total,
+                    created_at
              FROM quiz_scores
              WHERE player_id = :pid
-             ORDER BY played_at DESC
+             ORDER BY created_at DESC
              LIMIT 20'
         );
         $stmt->execute([':pid' => $playerId]);
@@ -91,11 +91,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->query(
             'SELECT player_name AS name,
                     MAX(score) AS score,
-                    total,
+                    total_questions AS total,
                     COUNT(*) AS games_played
              FROM quiz_scores
-             GROUP BY player_name, total
-             ORDER BY score DESC, played_at DESC
+             GROUP BY player_name, total_questions
+             ORDER BY score DESC
              LIMIT 20'
         );
         echo json_encode(['scores' => $stmt->fetchAll()]);
