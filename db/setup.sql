@@ -29,6 +29,28 @@ CREATE TABLE IF NOT EXISTS players (
 -- Add player_id to quiz_scores (run only if column doesn't exist)
 ALTER TABLE quiz_scores ADD COLUMN IF NOT EXISTS player_id INT DEFAULT NULL;
 
+-- Teams table (for future monetization)
+CREATE TABLE IF NOT EXISTS teams (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  team_name VARCHAR(100) NOT NULL,
+  slug VARCHAR(60) NOT NULL,
+  access_code VARCHAR(20) NOT NULL,
+  league_name VARCHAR(100) DEFAULT NULL,
+  coach_name VARCHAR(100) DEFAULT NULL,
+  coach_email VARCHAR(200) DEFAULT NULL,
+  plan ENUM('free','team','league') NOT NULL DEFAULT 'free',
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  max_players INT NOT NULL DEFAULT 25,
+  expires_at DATE DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_slug (slug),
+  UNIQUE KEY unique_code (access_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Add team_id to players (nullable — free players have no team)
+-- ALTER TABLE players ADD COLUMN team_id INT DEFAULT NULL;
+-- ALTER TABLE players ADD INDEX idx_team (team_id);
+
 -- Decision game scores
 CREATE TABLE IF NOT EXISTS decision_scores (
   id INT AUTO_INCREMENT PRIMARY KEY,

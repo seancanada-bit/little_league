@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { PlayerProvider, usePlayer } from './context/PlayerContext.jsx'
+import { TeamProvider, useTeam } from './context/TeamContext.jsx'
 import PlayerSetup from './components/PlayerSetup.jsx'
 import NavBar from './components/NavBar.jsx'
 import DiamondView from './components/DiamondView.jsx'
@@ -11,6 +12,7 @@ import { isSoundOn, toggleSound } from './utils/sounds'
 
 function AppInner() {
   const { player } = usePlayer()
+  const { team } = useTeam()
   const [activeTab, setActiveTab] = useState('diamond')
   const [soundOn, setSoundOn] = useState(isSoundOn())
   const [streak, setStreak] = useState(0)
@@ -59,6 +61,11 @@ function AppInner() {
         style={{background: 'rgba(10,22,40,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(245,200,66,0.1)'}}>
         <div className="flex items-center gap-2">
           <span className="font-display text-yellow-400 text-xl tracking-wider">COACH YOGI</span>
+          {team && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{background: 'rgba(46,94,168,0.2)', color: '#60a5fa', border: '1px solid rgba(46,94,168,0.3)'}}>
+              {team.team_name}
+            </span>
+          )}
           {streak > 1 && (
             <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{background: 'rgba(255,107,107,0.2)', color: '#FF6B6B', border: '1px solid rgba(255,107,107,0.3)'}}>
               🔥 {streak} day streak!
@@ -85,8 +92,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <PlayerProvider>
-      <AppInner />
-    </PlayerProvider>
+    <TeamProvider>
+      <PlayerProvider>
+        <AppInner />
+      </PlayerProvider>
+    </TeamProvider>
   )
 }
