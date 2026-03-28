@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import YogiMascot from './YogiMascot.jsx'
 import { usePlayer } from '../context/PlayerContext.jsx'
 import { playSound } from '../utils/sounds'
 
@@ -89,7 +88,7 @@ export default function PlayerSetup() {
       <div className="relative w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-6">
-          <YogiMascot size={110} className="mx-auto mb-3 drop-shadow-2xl" style={{animation: 'bounceIn 0.5s ease-out'}} />
+          <div className="text-7xl mb-3 drop-shadow-2xl" style={{animation: 'bounceIn 0.5s ease-out'}}>&#x26BE;</div>
           <h1 className="font-display text-5xl text-yellow-400 tracking-widest drop-shadow-lg">COACH YOGI</h1>
           <p className="text-blue-300 text-sm mt-1 font-semibold tracking-wide">BASEBALL ACADEMY</p>
         </div>

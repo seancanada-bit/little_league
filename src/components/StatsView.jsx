@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { usePlayer } from '../context/PlayerContext.jsx'
 import { scenarios } from '../data/scenarios.js'
-import YogiMascot from './YogiMascot.jsx'
 import { playSound } from '../utils/sounds'
 
 const API_BASE = '/sandbox/baseball-coach/api'
@@ -108,7 +107,7 @@ export default function StatsView({ playerName, playerId }) {
           padding: '16px 20px 12px',
         }}>
           <div className="flex items-center gap-3">
-            <YogiMascot size={56} />
+            <span className="text-4xl">&#x26BE;</span>
             <div>
               <div className="font-display text-3xl leading-tight" style={{ color: '#0F1E3A' }}>
                 {player.first_name.toUpperCase()}
