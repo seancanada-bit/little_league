@@ -65,24 +65,41 @@ export default function PlayAnimation({ play, playing, onDone, currentStep }) {
 
   return (
     <svg viewBox={`0 0 ${DIAMOND_W} ${DIAMOND_H}`} className="w-full" style={{ maxHeight: '55vw' }}>
-      {/* Outfield */}
-      <ellipse cx="250" cy="230" rx="230" ry="200" fill="#2d6a4f" />
-      {/* Infield dirt */}
-      <polygon points="250,170 360,290 250,400 140,290" fill="#c8a96e" />
-      {/* Warning track */}
-      <ellipse cx="250" cy="230" rx="230" ry="200" fill="none" stroke="#b8954e" strokeWidth="18" />
-      {/* Foul lines */}
-      <line x1="250" y1="400" x2="480" y2="70" stroke="white" strokeWidth="1.5" opacity="0.4" />
-      <line x1="250" y1="400" x2="20" y2="70" stroke="white" strokeWidth="1.5" opacity="0.4" />
-      {/* Base paths */}
-      <polygon points="250,170 360,290 250,400 140,290" fill="none" stroke="white" strokeWidth="2.5" />
-      {/* Pitcher's mound */}
-      <ellipse cx="250" cy="250" rx="22" ry="18" fill="#b8954e" stroke="#a07838" strokeWidth="2" />
-      {/* Bases */}
-      <rect x="237" y="163" width="26" height="26" fill="white" stroke="#ccc" strokeWidth="1.5" rx="3" transform="rotate(45 250 176)" />
-      <rect x="348" y="277" width="26" height="26" fill="white" stroke="#ccc" strokeWidth="1.5" rx="3" transform="rotate(45 361 290)" />
-      <rect x="128" y="277" width="26" height="26" fill="white" stroke="#ccc" strokeWidth="1.5" rx="3" transform="rotate(45 141 290)" />
-      <polygon points="250,390 265,405 265,420 235,420 235,405" fill="white" stroke="#ccc" strokeWidth="1.5" />
+      {/* ── GRASS + MOWING STRIPES ── */}
+      <defs>
+        <pattern id="playGrass" patternUnits="userSpaceOnUse" width="500" height="40">
+          <rect width="500" height="40" fill="#1A6B2E"/>
+          <rect width="500" height="20" fill="#1E7A34"/>
+        </pattern>
+        <radialGradient id="playDirt" cx="50%" cy="65%" r="55%">
+          <stop offset="0%" stopColor="#9A6840"/>
+          <stop offset="100%" stopColor="#6B4423"/>
+        </radialGradient>
+      </defs>
+      <rect width="500" height="480" fill="url(#playGrass)"/>
+
+      {/* ── FOUL LINES (through 1B and 3B) ── */}
+      <line x1="250" y1="400" x2="500" y2="150" stroke="rgba(255,255,255,0.9)" strokeWidth="2.5"/>
+      <line x1="250" y1="400" x2="0" y2="150" stroke="rgba(255,255,255,0.9)" strokeWidth="2.5"/>
+
+      {/* ── INFIELD DIRT (horseshoe arc) ── */}
+      <path d="M 360,290 A 110,110 0 1,0 140,290 L 250,400 Z" fill="url(#playDirt)"/>
+
+      {/* ── BASE PATH LINES ── */}
+      <line x1="250" y1="170" x2="360" y2="290" stroke="rgba(255,255,255,0.45)" strokeWidth="3"/>
+      <line x1="360" y1="290" x2="250" y2="400" stroke="rgba(255,255,255,0.45)" strokeWidth="3"/>
+      <line x1="250" y1="400" x2="140" y2="290" stroke="rgba(255,255,255,0.45)" strokeWidth="3"/>
+      <line x1="140" y1="290" x2="250" y2="170" stroke="rgba(255,255,255,0.45)" strokeWidth="3"/>
+
+      {/* ── PITCHER'S MOUND ── */}
+      <ellipse cx="250" cy="258" rx="22" ry="17" fill="#7A5030" stroke="#5A3820" strokeWidth="2"/>
+      <rect x="241" y="254" width="18" height="5" rx="1.5" fill="#F8F4E8" stroke="#ddd" strokeWidth="0.5"/>
+
+      {/* ── BASES ── */}
+      <rect x="238" y="158" width="24" height="24" rx="2" fill="white" stroke="#ccc" strokeWidth="1.5" transform="rotate(45,250,170)"/>
+      <rect x="348" y="278" width="24" height="24" rx="2" fill="white" stroke="#ccc" strokeWidth="1.5" transform="rotate(45,360,290)"/>
+      <rect x="128" y="278" width="24" height="24" rx="2" fill="white" stroke="#ccc" strokeWidth="1.5" transform="rotate(45,140,290)"/>
+      <polygon points="237,392 263,392 263,408 250,418 237,408" fill="white" stroke="#ccc" strokeWidth="1.5"/>
 
       {/* Position labels */}
       {[

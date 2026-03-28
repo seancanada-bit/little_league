@@ -6,14 +6,14 @@ import { playSound } from '../utils/sounds'
 
 const API_BASE = '/sandbox/baseball-coach/api'
 
-// SVG diamond coordinates (250x250 viewBox)
+// SVG diamond coordinates (250×240 viewBox, scaled from 500×480 master)
 const BASE_SVG_POSITIONS = {
-  home:    { cx: 125, cy: 220 },
-  first:   { cx: 210, cy: 140 },
-  second:  { cx: 125, cy: 55  },
-  third:   { cx: 40,  cy: 140 },
-  pitcher: { cx: 125, cy: 140 },
-  hold:    { cx: 125, cy: 140 },
+  home:    { cx: 125, cy: 200 },
+  first:   { cx: 180, cy: 145 },
+  second:  { cx: 125, cy: 85  },
+  third:   { cx: 70,  cy: 145 },
+  pitcher: { cx: 125, cy: 129 },
+  hold:    { cx: 125, cy: 129 },
 }
 
 const OPTION_LABELS = {
@@ -32,27 +32,43 @@ const DIFFICULTY_STYLES = {
 
 function DiamondSVG({ runners, ballPos, ballVisible }) {
   return (
-    <svg viewBox="0 0 250 250" className="w-full max-w-xs mx-auto">
-      {/* Outfield */}
-      <ellipse cx="125" cy="130" rx="115" ry="110" fill="#1A6B2E" />
-      {/* Warning track */}
-      <ellipse cx="125" cy="130" rx="115" ry="110" fill="none" stroke="#6B4423" strokeWidth="12" />
-      {/* Infield dirt */}
-      <polygon points="125,55 210,140 125,220 40,140" fill="#8B5E3C" />
+    <svg viewBox="0 0 250 240" className="w-full max-w-xs mx-auto">
+      <defs>
+        <pattern id="gameGrass" patternUnits="userSpaceOnUse" width="250" height="20">
+          <rect width="250" height="20" fill="#1A6B2E"/>
+          <rect width="250" height="10" fill="#1E7A34"/>
+        </pattern>
+        <radialGradient id="gameDirt" cx="50%" cy="65%" r="55%">
+          <stop offset="0%" stopColor="#9A6840"/>
+          <stop offset="100%" stopColor="#6B4423"/>
+        </radialGradient>
+      </defs>
+      {/* Grass */}
+      <rect width="250" height="240" fill="url(#gameGrass)"/>
+      {/* Foul lines (through 1B and 3B) */}
+      <line x1="125" y1="200" x2="250" y2="75" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5"/>
+      <line x1="125" y1="200" x2="0" y2="75" stroke="rgba(255,255,255,0.9)" strokeWidth="1.5"/>
+      {/* Infield dirt (horseshoe arc) */}
+      <path d="M 180,145 A 55,55 0 1,0 70,145 L 125,200 Z" fill="url(#gameDirt)"/>
       {/* Base paths */}
-      <polygon points="125,55 210,140 125,220 40,140" fill="none" stroke="rgba(248,244,232,0.6)" strokeWidth="1.5" />
+      <line x1="125" y1="85" x2="180" y2="145" stroke="rgba(255,255,255,0.45)" strokeWidth="1.5"/>
+      <line x1="180" y1="145" x2="125" y2="200" stroke="rgba(255,255,255,0.45)" strokeWidth="1.5"/>
+      <line x1="125" y1="200" x2="70" y2="145" stroke="rgba(255,255,255,0.45)" strokeWidth="1.5"/>
+      <line x1="70" y1="145" x2="125" y2="85" stroke="rgba(255,255,255,0.45)" strokeWidth="1.5"/>
       {/* Pitcher mound */}
-      <ellipse cx="125" cy="140" rx="12" ry="10" fill="#7A5030" stroke="#5A3820" strokeWidth="1" />
+      <ellipse cx="125" cy="129" rx="11" ry="8.5" fill="#7A5030" stroke="#5A3820" strokeWidth="1"/>
+      <rect x="120.5" y="127" width="9" height="2.5" rx="0.75" fill="#F8F4E8"/>
       {/* Bases */}
-      <rect x="116" y="46" width="18" height="18" fill="white" rx="2" transform="rotate(45 125 55)" />
-      <rect x="201" y="131" width="18" height="18" fill="white" rx="2" transform="rotate(45 210 140)" />
-      <rect x="31" y="131" width="18" height="18" fill="white" rx="2" transform="rotate(45 40 140)" />
-      <polygon points="125,212 133,220 133,228 117,228 117,220" fill="white" stroke="#ddd" strokeWidth="1" />
+      <rect x="119" y="79" width="12" height="12" rx="1" fill="white" stroke="#ccc" strokeWidth="1" transform="rotate(45,125,85)"/>
+      <rect x="174" y="139" width="12" height="12" rx="1" fill="white" stroke="#ccc" strokeWidth="1" transform="rotate(45,180,145)"/>
+      <rect x="64" y="139" width="12" height="12" rx="1" fill="white" stroke="#ccc" strokeWidth="1" transform="rotate(45,70,145)"/>
+      {/* Home plate pentagon */}
+      <polygon points="118.5,196 131.5,196 131.5,204 125,209 118.5,204" fill="white" stroke="#ccc" strokeWidth="1"/>
       {/* Base labels */}
-      <text x="125" y="35" textAnchor="middle" fill="#F5C842" fontSize="9" fontWeight="bold" fontFamily="system-ui">2B</text>
-      <text x="228" y="144" textAnchor="middle" fill="#F5C842" fontSize="9" fontWeight="bold" fontFamily="system-ui">1B</text>
-      <text x="22"  y="144" textAnchor="middle" fill="#F5C842" fontSize="9" fontWeight="bold" fontFamily="system-ui">3B</text>
-      <text x="125" y="245" textAnchor="middle" fill="#F5C842" fontSize="9" fontWeight="bold" fontFamily="system-ui">Home</text>
+      <text x="125" y="68" textAnchor="middle" fill="#F5C842" fontSize="9" fontWeight="bold" fontFamily="system-ui">2B</text>
+      <text x="198" y="149" textAnchor="middle" fill="#F5C842" fontSize="9" fontWeight="bold" fontFamily="system-ui">1B</text>
+      <text x="52" y="149" textAnchor="middle" fill="#F5C842" fontSize="9" fontWeight="bold" fontFamily="system-ui">3B</text>
+      <text x="125" y="225" textAnchor="middle" fill="#F5C842" fontSize="9" fontWeight="bold" fontFamily="system-ui">Home</text>
       {/* Runners */}
       {runners.first  && <circle cx={BASE_SVG_POSITIONS.first.cx}  cy={BASE_SVG_POSITIONS.first.cy}  r="10" fill="#F5C842" stroke="#C9A227" strokeWidth="2" />}
       {runners.second && <circle cx={BASE_SVG_POSITIONS.second.cx} cy={BASE_SVG_POSITIONS.second.cy} r="10" fill="#F5C842" stroke="#C9A227" strokeWidth="2" />}
@@ -105,7 +121,7 @@ export default function DecisionGame({ playerName, playerId }) {
   const handleSelect = (scenario) => {
     setSelected(scenario)
     setAnswer(null)
-    setBallPos({ cx: 125, cy: 140 })
+    setBallPos({ cx: 125, cy: 129 })
     setBallVisible(false)
     setShowResult(false)
     setConfettiActive(false)
