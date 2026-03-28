@@ -1,0 +1,37 @@
+# ── Security Headers ──
+<IfModule mod_headers.c>
+  # Force HTTPS
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+  # Prevent XSS / injection — allow self + Google Fonts + inline styles (Tailwind/React)
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+
+  # Prevent clickjacking
+  Header always set X-Frame-Options "SAMEORIGIN"
+
+  # Prevent MIME-type sniffing
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Control referrer info
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Restrict browser features
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+</IfModule>
+
+# ── SPA Routing ──
+# React Router / client-side routing: send everything to index.html
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Don't rewrite files or directories that exist (api/, assets/, etc.)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Don't rewrite API calls
+  RewriteCond %{REQUEST_URI} !^/api/
+
+  # Send everything else to index.html
+  RewriteRule ^ index.html [QSA,L]
+</IfModule>
