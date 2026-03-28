@@ -11,7 +11,7 @@ export default function App() {
       <header className="bg-emerald-800 px-4 py-3 flex items-center gap-2 shadow-lg">
         <span className="text-3xl">⚾</span>
         <div>
-          <h1 className="text-xl font-bold text-yellow-300 leading-tight">Baseball Coach</h1>
+          <h1 className="text-xl font-bold text-yellow-300 leading-tight">Coach Yogi's Baseball</h1>
           <p className="text-xs text-emerald-200">Learn the game — one play at a time!</p>
         </div>
       </header>

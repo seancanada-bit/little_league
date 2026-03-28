@@ -15,7 +15,7 @@ export default function AskCoach() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hey there, slugger! 👋 I'm Coach Claude! I know everything about baseball and I love teaching kids just like you. Ask me anything — plays, rules, positions, pro players — whatever you're curious about! ⚾"
+      content: "Hey there, slugger! 👋 I'm Coach Yogi! Like the great Yogi Berra once said — 'Baseball is 90% mental, and the other half is physical!' Ask me anything about plays, rules, positions, or pro players! ⚾"
     }
   ])
   const [input, setInput] = useState('')
@@ -61,8 +61,8 @@ export default function AskCoach() {
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 130px)' }}>
       <div className="p-3 bg-emerald-800 border-b border-emerald-700">
-        <h2 className="text-base font-bold text-yellow-300">💬 Ask the Coach</h2>
-        <p className="text-xs text-emerald-300">Coach Claude knows everything about baseball!</p>
+        <h2 className="text-base font-bold text-yellow-300">💬 Ask Coach Yogi</h2>
+        <p className="text-xs text-emerald-300">Coach Yogi knows everything about baseball!</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -125,7 +125,7 @@ export default function AskCoach() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendMessage()}
-            placeholder="Ask Coach anything about baseball..."
+            placeholder="Ask Coach Yogi anything about baseball..."
             className="flex-1 bg-emerald-800 border border-emerald-600 rounded-xl px-3 py-2 text-sm text-white placeholder-emerald-500 focus:outline-none focus:border-yellow-400"
           />
           <button
