@@ -3,8 +3,6 @@ import NavBar from './components/NavBar.jsx'
 import DiamondView from './components/DiamondView.jsx'
 import PlayLibrary from './components/PlayLibrary.jsx'
 import QuizMode from './components/QuizMode.jsx'
-import AskCoach from './components/AskCoach.jsx'
-
 export default function App() {
   const [tab, setTab] = useState('diamond')
 
@@ -22,7 +20,6 @@ export default function App() {
         {tab === 'diamond' && <DiamondView />}
         {tab === 'plays' && <PlayLibrary />}
         {tab === 'quiz' && <QuizMode />}
-        {tab === 'coach' && <AskCoach />}
       </main>
 
       <NavBar tab={tab} setTab={setTab} />
