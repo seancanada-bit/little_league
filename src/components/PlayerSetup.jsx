@@ -1,167 +1,177 @@
 import { useState } from 'react'
+import YogiMascot from './YogiMascot.jsx'
 import { usePlayer } from '../context/PlayerContext.jsx'
+import { playSound } from '../utils/sounds'
 
-const API_BASE = '/sandbox/baseball-coach/api'
+const API = '/sandbox/baseball-coach/api'
 
 export default function PlayerSetup() {
   const { savePlayer } = usePlayer()
-  const [nameInput, setNameInput] = useState('')
+  const [name, setName] = useState('')
+  const [status, setStatus] = useState('idle') // idle | loading | returning | new | error
+  const [returningData, setReturningData] = useState(null)
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [welcomeBack, setWelcomeBack] = useState(null) // {id, first_name, quiz_count, ...}
-  const [pendingPlayer, setPendingPlayer] = useState(null)
 
-  const handleNameChange = (e) => {
-    // Only allow letters, auto-capitalize first letter
-    const raw = e.target.value.replace(/[^A-Za-z]/g, '')
-    const capped = raw.length > 0 ? raw.charAt(0).toUpperCase() + raw.slice(1) : ''
-    setNameInput(capped)
+  const handleNameInput = (e) => {
+    const raw = e.target.value.replace(/[^a-zA-Z]/g, '')
+    setName(raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase())
     setError('')
   }
 
   const handleSubmit = async () => {
-    const trimmed = nameInput.trim()
-    if (trimmed.length < 2) {
-      setError('Your name needs at least 2 letters, slugger!')
-      return
-    }
-    if (trimmed.length > 20) {
-      setError('That name is too long — try a shorter one!')
-      return
-    }
-
-    setLoading(true)
+    if (name.length < 2) { setError('Name needs at least 2 letters!'); return }
+    setStatus('loading')
     setError('')
-
     try {
-      const res = await fetch(`${API_BASE}/players.php`, {
+      const res = await fetch(`${API}/players.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ first_name: trimmed }),
+        body: JSON.stringify({ first_name: name }),
       })
       const data = await res.json()
 
       if (data.error) {
         setError(data.error)
-        setLoading(false)
+        setStatus('idle')
         return
       }
 
       if (data.created === false) {
-        // Returning player — show welcome back screen
-        setWelcomeBack(data)
-        setPendingPlayer({ id: data.id, first_name: data.first_name })
-        setLoading(false)
+        // Returning player
+        setReturningData(data)
+        setStatus('returning')
+        playSound('correct')
       } else {
-        // New player — brief success then auto-proceed
-        setPendingPlayer({ id: data.id, first_name: data.first_name })
-        setLoading(false)
-        setTimeout(() => {
-          savePlayer({ id: data.id, first_name: data.first_name })
-        }, 1500)
+        // New player
+        setStatus('new')
+        playSound('fanfare')
+        setTimeout(() => savePlayer({ id: data.id, first_name: data.first_name }), 1800)
       }
-    } catch (e) {
-      // API unavailable — allow offline play with a local-only player
-      const localPlayer = { id: null, first_name: trimmed }
-      setPendingPlayer(localPlayer)
-      setLoading(false)
-      setTimeout(() => {
-        savePlayer(localPlayer)
-      }, 1500)
+    } catch {
+      // Offline fallback
+      setStatus('new')
+      playSound('fanfare')
+      setTimeout(() => savePlayer({ id: null, first_name: name }), 1800)
     }
   }
 
-  const handleConfirmWelcomeBack = () => {
-    savePlayer(pendingPlayer)
+  const handleReturningConfirm = () => {
+    playSound('correct')
+    savePlayer({ id: returningData.id, first_name: returningData.first_name })
   }
 
-  // Welcome back screen
-  if (welcomeBack) {
-    return (
-      <div className="min-h-screen bg-emerald-900 flex flex-col items-center justify-center px-6">
-        <div className="text-6xl mb-4">🎉</div>
-        <h2 className="text-2xl font-bold text-yellow-300 mb-3 text-center">
-          Welcome back, {welcomeBack.first_name}!
-        </h2>
-        <div className="bg-emerald-800 border-2 border-yellow-400 rounded-2xl p-5 mb-6 w-full max-w-xs text-center">
-          <p className="text-white text-base mb-2">
-            You've played{' '}
-            <span className="text-yellow-300 font-bold">{welcomeBack.quiz_count}</span>{' '}
-            time{welcomeBack.quiz_count !== 1 ? 's' : ''}.
-          </p>
-          <p className="text-emerald-300 text-sm">Coach Yogi missed ya! ⚾</p>
-        </div>
-        <button
-          onClick={handleConfirmWelcomeBack}
-          className="bg-yellow-400 text-emerald-900 font-bold text-lg px-10 py-3 rounded-2xl hover:bg-yellow-300 active:scale-95 transition-all shadow-lg"
-        >
-          Let's Go! ⚾
-        </button>
-      </div>
-    )
-  }
+  // Stars background (computed once, stable)
+  const stars = Array.from({ length: 20 }, (_, i) => ({
+    w: 1 + ((i * 7 + 3) % 3),
+    h: 1 + ((i * 11 + 1) % 3),
+    top: (i * 13 + 5) % 40,
+    left: (i * 17 + 9) % 100,
+    dur: 1.5 + (i % 4) * 0.5,
+  }))
 
-  // New player success (pendingPlayer set but no welcomeBack)
-  if (pendingPlayer && !welcomeBack) {
-    return (
-      <div className="min-h-screen bg-emerald-900 flex flex-col items-center justify-center px-6">
-        <div className="text-6xl mb-4">⚾</div>
-        <h2 className="text-2xl font-bold text-yellow-300 mb-2 text-center">
-          You're on the team, {pendingPlayer.first_name}!
-        </h2>
-        <p className="text-emerald-300 text-center">Getting the dugout ready…</p>
-        <div className="mt-6">
-          <div className="w-8 h-8 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto" />
-        </div>
-      </div>
-    )
-  }
-
-  // Main name entry screen
   return (
-    <div className="min-h-screen bg-emerald-900 flex flex-col items-center justify-center px-6">
-      <div className="text-7xl mb-4">⚾</div>
-      <h1 className="text-3xl font-black text-yellow-300 mb-1 text-center">
-        Coach Yogi's Baseball
-      </h1>
-      <p className="text-emerald-400 text-sm mb-8 text-center">Learn the game — one play at a time!</p>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8"
+      style={{background: 'linear-gradient(180deg, #0a1628 0%, #1B3A6B 40%, #1A6B2E 100%)'}}>
 
-      <div className="w-full max-w-xs">
-        <p className="text-white text-lg font-bold text-center mb-4">
-          What's your name, slugger?
-        </p>
+      {/* Stars */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {stars.map((s, i) => (
+          <div key={i} className="absolute rounded-full bg-white"
+            style={{
+              width: `${s.w}px`, height: `${s.h}px`,
+              top: `${s.top}%`, left: `${s.left}%`,
+              opacity: 0.6,
+              animation: `pulse ${s.dur}s ease-in-out infinite`
+            }}/>
+        ))}
+      </div>
 
-        <input
-          type="text"
-          placeholder="Type your first name…"
-          value={nameInput}
-          onChange={handleNameChange}
-          onKeyDown={e => e.key === 'Enter' && !loading && nameInput.length >= 2 && handleSubmit()}
-          maxLength={20}
-          className="w-full bg-emerald-800 border-2 border-emerald-600 focus:border-yellow-400 rounded-xl px-4 py-3 text-white text-center text-xl mb-2 focus:outline-none transition-colors"
-        />
+      <div className="relative w-full max-w-sm">
+        {/* Logo */}
+        <div className="text-center mb-6">
+          <YogiMascot size={110} className="mx-auto mb-3 drop-shadow-2xl" style={{animation: 'bounceIn 0.5s ease-out'}} />
+          <h1 className="font-display text-5xl text-yellow-400 tracking-widest drop-shadow-lg">COACH YOGI</h1>
+          <p className="text-blue-300 text-sm mt-1 font-semibold tracking-wide">BASEBALL ACADEMY</p>
+        </div>
 
-        {error && (
-          <p className="text-red-400 text-sm text-center mb-3">{error}</p>
+        {(status === 'idle' || status === 'loading' || status === 'error') && (
+          <div className="card p-6 text-center">
+            <p className="text-white text-xl mb-5 font-semibold">What's your first name, slugger? ⚾</p>
+
+            {/* Jersey nameplate input */}
+            <div className="relative mb-4">
+              <div className="rounded-xl overflow-hidden"
+                style={{background: 'linear-gradient(135deg, #1B3A6B, #0F1E3A)', border: '2px solid rgba(245,200,66,0.4)', boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)', position: 'relative'}}>
+                {/* Pinstripes overlay */}
+                <div className="absolute inset-0 pointer-events-none"
+                  style={{backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 18px, rgba(255,255,255,0.04) 18px, rgba(255,255,255,0.04) 19px)'}} />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={handleNameInput}
+                  onKeyDown={(e) => e.key === 'Enter' && name.length >= 2 && handleSubmit()}
+                  placeholder="Your name here"
+                  maxLength={20}
+                  className="relative z-10 w-full text-center text-2xl py-4 px-4 bg-transparent outline-none"
+                  style={{fontFamily: "'Bebas Neue', 'Arial Black', sans-serif", letterSpacing: '0.15em', color: '#F5C842', caretColor: '#F5C842'}}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-red-400 text-sm mb-3" style={{animation: 'bounceIn 0.3s ease-out'}}>{error}</p>
+            )}
+
+            <button
+              onClick={handleSubmit}
+              disabled={status === 'loading' || name.length < 2}
+              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {status === 'loading' ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="inline-block animate-spin">⚾</span> Checking...
+                </span>
+              ) : "Let's Play Ball! ⚾"}
+            </button>
+          </div>
         )}
 
-        <button
-          onClick={handleSubmit}
-          disabled={loading || nameInput.length < 2}
-          className="w-full bg-yellow-400 text-emerald-900 font-bold text-lg py-3 rounded-2xl hover:bg-yellow-300 active:scale-95 transition-all disabled:opacity-40 shadow-lg mt-2 flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <>
-              <div className="w-5 h-5 border-3 border-emerald-900 border-t-transparent rounded-full animate-spin" />
-              <span>Loading…</span>
-            </>
-          ) : (
-            "Let's Play Ball! ⚾"
-          )}
-        </button>
+        {status === 'returning' && returningData && (
+          <div className="card p-6 text-center" style={{animation: 'bounceIn 0.5s ease-out'}}>
+            <div className="text-5xl mb-3">🎉</div>
+            <h2 className="font-display text-3xl text-yellow-400 mb-2">
+              WELCOME BACK,<br/>{returningData.first_name}!
+            </h2>
+            <p className="mb-4" style={{ color: '#93c5fd' }}>
+              You've played{' '}
+              <span className="text-yellow-300 font-bold">{returningData.quiz_count || 0}</span>{' '}
+              quizzes
+              {returningData.quiz_avg > 0 && (
+                <> with an average of{' '}
+                  <span className="text-yellow-300 font-bold">{Math.round(returningData.quiz_avg)}%</span>
+                </>
+              )}!
+            </p>
+            <button onClick={handleReturningConfirm} className="btn-primary w-full">
+              Let's Go! ⚾
+            </button>
+          </div>
+        )}
 
-        <p className="text-emerald-500 text-xs text-center mt-4">
-          Letters only, 2–20 characters
+        {status === 'new' && (
+          <div className="card p-6 text-center" style={{animation: 'bounceIn 0.5s ease-out'}}>
+            <div className="text-5xl mb-3">🎊</div>
+            <h2 className="font-display text-3xl text-yellow-400 mb-2">
+              WELCOME TO THE TEAM,<br/>{name}!
+            </h2>
+            <p style={{ color: '#93c5fd' }}>Get ready to learn baseball with Coach Yogi!</p>
+            <div className="mt-4 text-2xl animate-spin inline-block">⚾</div>
+          </div>
+        )}
+
+        <p className="text-center text-xs mt-4 opacity-60" style={{ color: '#60a5fa' }}>
+          Coach Yogi's Baseball Academy • Learn &amp; Play!
         </p>
       </div>
     </div>
