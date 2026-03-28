@@ -155,16 +155,16 @@ export default function DiamondView({ playerName }) {
                   stroke={isSelected ? '#C9A227' : '#2E5EA8'}
                   strokeWidth="2.5"
                   style={{ transition: 'fill 0.15s, stroke 0.15s' }}/>
-                <text x={p.cx} y={p.cy + 1}
+                <text x={p.cx} y={p.cy - 1}
                   textAnchor="middle" dominantBaseline="middle"
                   fill={isSelected ? '#0F1E3A' : '#F8F4E8'}
-                  fontSize="11" fontWeight="bold" fontFamily="system-ui">
+                  fontSize="13" fontWeight="bold" fontFamily="system-ui">
                   {p.id}
                 </text>
-                <text x={p.cx} y={p.cy + 13}
+                <text x={p.cx} y={p.cy + 12}
                   textAnchor="middle" dominantBaseline="middle"
-                  fill={isSelected ? '#5a3800' : '#2E5EA8'}
-                  fontSize="8" fontFamily="system-ui">
+                  fill={isSelected ? '#5a3800' : '#93c5fd'}
+                  fontSize="9" fontWeight="600" fontFamily="system-ui">
                   #{p.number}
                 </text>
               </g>
